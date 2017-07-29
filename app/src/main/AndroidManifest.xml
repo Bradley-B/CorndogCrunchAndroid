@@ -20,11 +20,12 @@
         </activity>
         <activity
             android:name=".SingleplayerActivity"
-            android:parentActivityName=".LandingActivity"></activity>
+            android:parentActivityName=".LandingActivity" />
         <activity
             android:name=".ScoreboardActivity"
-            android:parentActivityName=".LandingActivity"
-            ></activity>
+            android:parentActivityName=".LandingActivity" />
+        <activity android:name=".MultiplayerSettingsActivity" />
+        <activity android:name=".highscores.MultiplayerActivity"></activity>
     </application>
 
 </manifest>

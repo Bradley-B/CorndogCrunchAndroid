@@ -24,4 +24,9 @@ public class LandingActivity extends AppCompatActivity {
         Intent intent = new Intent(this, ScoreboardActivity.class);
         startActivity(intent);
     }
+
+    public void onMultiplayerButton(View v) {
+        Intent intent = new Intent(this, MultiplayerSettingsActivity.class);
+        startActivity(intent);
+    }
 }

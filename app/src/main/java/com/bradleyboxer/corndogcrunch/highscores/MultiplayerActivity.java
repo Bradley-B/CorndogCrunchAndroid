@@ -1,23 +1,26 @@
-package com.bradleyboxer.corndogcrunch;
+package com.bradleyboxer.corndogcrunch.highscores;
 
 import android.content.Intent;
 import android.content.pm.ActivityInfo;
 import android.media.AudioAttributes;
 import android.media.AudioManager;
+import android.media.SoundPool;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
-import android.view.View;
 import android.widget.ImageButton;
 import android.widget.TextView;
-import android.media.SoundPool;
+
+import com.bradleyboxer.corndogcrunch.MultiplayerSettingsActivity;
+import com.bradleyboxer.corndogcrunch.R;
 
 import java.util.Random;
 
-public class SingleplayerActivity extends AppCompatActivity {
+public class MultiplayerActivity extends AppCompatActivity {
 
-    boolean isGameRunning = false;
+    long startTime = 0;
     int score = 0;
     int activeCreatureId = -1;
     int[] creatureIds = new int[9];
@@ -30,7 +33,7 @@ public class SingleplayerActivity extends AppCompatActivity {
     SoundPool sp;
 
     @Override
-    protected void onCreate(Bundle state) {
+    protected void onCreate(Bundle savedInstanceState) {
 
         attrs = new AudioAttributes.Builder().setUsage(AudioAttributes.USAGE_GAME).setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION).build();
         sp = new SoundPool.Builder().setMaxStreams(5).setAudioAttributes(attrs).build();
@@ -43,7 +46,7 @@ public class SingleplayerActivity extends AppCompatActivity {
         requestWindowFeature(Window.FEATURE_NO_TITLE);
         getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
 
-        int baseCreatureId = R.id.imageButton0;
+        int baseCreatureId = R.id.imageButton0M;
         int baseImageId = R.drawable.c0;
         int referenceOffset = 0;
         for(int i=0;i<9;i++) {
@@ -54,58 +57,69 @@ public class SingleplayerActivity extends AppCompatActivity {
             creatureIds[i] = baseCreatureId + i + referenceOffset;
         }
 
-        super.onCreate(state);
-        setContentView(R.layout.activity_singleplayer);
+        score = 0;
 
+        Intent intent = getIntent();
+        startTime = intent.getLongExtra("startTime", System.currentTimeMillis()+1000);
+
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_multiplayer);
+
+        runGame();
     }
 
-    public void onStartButton(View v) throws InterruptedException {
-        if(!isGameRunning) {
-            isGameRunning = true;
+    public void runGame() {
+        Thread t = new Thread() {
+            @Override
+            public void run() {
+                final long initTime = System.currentTimeMillis();
+                final long pregameTime = startTime - System.currentTimeMillis();
+                final int gameTime = 8000;
 
-            Thread t = new Thread() {
-                @Override
-                public void run() {
-                    final long initTime = System.currentTimeMillis();
-                    final int pregameTime = 4000;
-                    final int gameTime = 8000;
-
-                    while(System.currentTimeMillis()-initTime<=pregameTime) {
-                        runOnUiThread(new Runnable() {
-                            @Override
-                            public void run() {
-                                setGameText("Game beginning in "+String.valueOf((initTime+pregameTime)-System.currentTimeMillis()) + " ms");
-                            }
-                        });
-                        try{Thread.sleep(random.nextInt(50));} catch (InterruptedException e){};
-                    }
-
-                    runOnUiThread(new Runnable() { //tick game once to get it started
-                        @Override
-                        public void run() {
-                            startupGame();
-                        }
-                    });
-
-                    while(System.currentTimeMillis()-initTime<=pregameTime+gameTime) {
-                        runOnUiThread(new Runnable() {
-                            @Override
-                            public void run() {
-                                setGameText("Game ending in "+String.valueOf((initTime+pregameTime+gameTime)-System.currentTimeMillis()) + " ms");
-                            }
-                        });
-                        try{Thread.sleep(random.nextInt(50));} catch (InterruptedException e){};
-                    }
-
+                while(System.currentTimeMillis()-initTime<=pregameTime) {
                     runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
-                            shutdownGame();
+                            setGameText("Game beginning in "+String.valueOf((initTime+pregameTime)-System.currentTimeMillis()) + " ms");
                         }
                     });
+                    try{Thread.sleep(random.nextInt(50));} catch (InterruptedException e){};
                 }
-            };
-            t.start();
+
+                runOnUiThread(new Runnable() { //tick game once to get it started
+                    @Override
+                    public void run() {
+                        startupGame();
+                    }
+                });
+
+                while(System.currentTimeMillis()-initTime<=pregameTime+gameTime) {
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            setGameText("Game ending in "+String.valueOf((initTime+pregameTime+gameTime)-System.currentTimeMillis()) + " ms");
+                        }
+                    });
+                    try{Thread.sleep(random.nextInt(50));} catch (InterruptedException e){};
+                }
+
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        shutdownGame();
+                    }
+                });
+            }
+        };
+        t.start();
+    }
+
+    public void onCreatureButton(View v) {
+        if(activeCreatureId==v.getId()) {
+            sp.play(soundIds[0], 1, 1, 1, 0, 1.0f);
+            score++;
+            resetCreatureImageById(activeCreatureId);
+            startupGame();
         }
     }
 
@@ -120,30 +134,10 @@ public class SingleplayerActivity extends AppCompatActivity {
         setGameText("Your score is "+score);
         resetCreatureImageById(activeCreatureId);
         activeCreatureId = -1;
-        boolean goToScoreboard = score>ScoreboardActivity.lowestBestScore;
-        Intent scoreboardIntent = null;
-
-        if(goToScoreboard) {
-            Intent intent = new Intent(this, ScoreboardActivity.class);
-            intent.putExtra("playerScore", score);
-            startActivity(intent);
-        }
-
-        score = 0;
-        isGameRunning = false;
-
-        if(goToScoreboard && scoreboardIntent!=null) {
-            startActivity(scoreboardIntent);
-        }
-    }
-
-    public void onCreatureButton(View v) {
-        if(activeCreatureId==v.getId()) {
-            sp.play(soundIds[0], 1, 1, 1, 0, 1.0f);
-            score++;
-            resetCreatureImageById(activeCreatureId);
-            startupGame();
-        }
+        Intent intent = new Intent();
+        intent.putExtra("scoreReport", score);
+        setResult(RESULT_OK, intent);
+        finish();
     }
 
     public void setCreatureImage(int creatureId, int imageId) {
@@ -165,12 +159,6 @@ public class SingleplayerActivity extends AppCompatActivity {
     }
 
     public void setGameText(String text) {
-        ((TextView) findViewById(R.id.gameText)).setText(text);
-    }
-
-    @Override
-    public void onDestroy() {
-        sp.release();
-        super.onDestroy();
+        ((TextView) findViewById(R.id.gameTextM)).setText(text);
     }
 }

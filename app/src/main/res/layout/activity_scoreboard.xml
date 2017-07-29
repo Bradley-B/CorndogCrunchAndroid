@@ -286,8 +286,8 @@
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:ems="10"
+                android:hint="Name"
                 android:inputType="textPersonName"
-                android:text="Name"
                 android:visibility="gone" />
 
             <Button
