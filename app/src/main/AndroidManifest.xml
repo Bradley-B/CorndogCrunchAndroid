@@ -3,6 +3,7 @@
     package="com.bradleyboxer.corndogcrunch">
 
     <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
 
     <application
         android:allowBackup="true"
@@ -25,7 +26,10 @@
             android:name=".ScoreboardActivity"
             android:parentActivityName=".LandingActivity" />
         <activity android:name=".MultiplayerSettingsActivity" />
-        <activity android:name=".highscores.MultiplayerActivity"></activity>
+        <activity android:name=".MultiplayerActivity" />
+        <activity android:name=".SettingsActivity"
+            android:parentActivityName=".LandingActivity"
+            ></activity>
     </application>
 
 </manifest>

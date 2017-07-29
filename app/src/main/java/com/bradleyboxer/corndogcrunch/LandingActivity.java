@@ -29,4 +29,9 @@ public class LandingActivity extends AppCompatActivity {
         Intent intent = new Intent(this, MultiplayerSettingsActivity.class);
         startActivity(intent);
     }
+
+    public void onSettingsButton(View v) {
+        Intent intent = new Intent(this, SettingsActivity.class);
+        startActivity(intent);
+    }
 }

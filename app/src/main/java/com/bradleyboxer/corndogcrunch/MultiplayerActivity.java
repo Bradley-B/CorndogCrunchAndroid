@@ -1,4 +1,4 @@
-package com.bradleyboxer.corndogcrunch.highscores;
+package com.bradleyboxer.corndogcrunch;
 
 import android.content.Intent;
 import android.content.pm.ActivityInfo;

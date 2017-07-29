@@ -2,7 +2,6 @@ package com.bradleyboxer.corndogcrunch;
 
 import android.content.Intent;
 import android.content.pm.ActivityInfo;
-import android.os.AsyncTask;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
@@ -11,15 +10,12 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
 
-import com.bradleyboxer.corndogcrunch.highscores.MultiplayerActivity;
-
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.InetAddress;
 import java.net.Socket;
-import java.net.UnknownHostException;
 import java.util.regex.Pattern;
 
 public class MultiplayerSettingsActivity extends AppCompatActivity {
@@ -87,6 +83,13 @@ public class MultiplayerSettingsActivity extends AppCompatActivity {
                     socket = new Socket(address, port);
                     out = new PrintWriter(socket.getOutputStream());
                     sendMessageToServer("/nameReport "+name);
+
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            ((TextView) findViewById(R.id.multiplayerDisplay)).setText("Connected to "+socket.getRemoteSocketAddress());
+                        }
+                    });
 
                     Thread listenerThread = new Thread(new Runnable() { //listen from server for commands
                         @Override

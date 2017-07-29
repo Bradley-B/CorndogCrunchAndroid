@@ -8,6 +8,7 @@ import android.util.Log;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
+import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
 
@@ -67,6 +68,7 @@ public class ScoreboardActivity extends AppCompatActivity {
             savedIntent = intent;
             findViewById(R.id.highscoreName).setVisibility(View.VISIBLE);
             findViewById(R.id.highscoreSubmitButton).setVisibility(View.VISIBLE);
+            ((Button)findViewById(R.id.highscoreSubmitButton)).setText("Submit "+intent.getIntExtra("playerScore", 0));
         }
     }
 
