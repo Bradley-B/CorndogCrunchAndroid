@@ -4,7 +4,6 @@ import android.content.Intent;
 import android.content.pm.ActivityInfo;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
@@ -16,8 +15,6 @@ import com.bradleyboxer.corndogcrunch.highscores.Score;
 import com.bradleyboxer.corndogcrunch.highscores.ScoreComparator;
 
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
@@ -31,8 +28,6 @@ public class ScoreboardActivity extends AppCompatActivity {
     int[] scoreViewIds = new int[10];
     private File file;
     private ArrayList<Score> scores = new ArrayList<Score>();
-    private ObjectInputStream objectInputStream;
-    private ObjectOutputStream objectOutputStream;
     public static int lowestBestScore = 0;
     public boolean scoreAdded = false;
     public int newScore = 0;
@@ -85,43 +80,11 @@ public class ScoreboardActivity extends AppCompatActivity {
     }
 
     public void loadScoreFile() {
-        try {
-            objectInputStream = new ObjectInputStream(new FileInputStream(file));
-            scores = (ArrayList<Score>) objectInputStream.readObject();
-        } catch (FileNotFoundException e) {
-            Log.e("HIGHSCORES", e.getMessage());
-        } catch (IOException e) {
-            Log.e("HIGHSCORES", e.getMessage());
-        } catch (ClassNotFoundException e) {
-            Log.e("HIGHSCORES", e.getMessage());
-        } finally {
-            try {
-                if(objectInputStream!=null) {
-                    objectInputStream.close();
-                }
-            } catch(Exception e) {
-                Log.e("HIGHSCORES", e.getMessage());
-            }
-        }
+       scores =  Util.loadScoreFile(file);
     }
 
     public void updateScoreFile() {
-        try {
-            objectOutputStream = new ObjectOutputStream(new FileOutputStream(file));
-            objectOutputStream.writeObject(scores);
-        } catch (Exception e) {
-            e.printStackTrace();
-        } finally {
-            try {
-                if(objectOutputStream!=null) {
-                    objectOutputStream.flush();
-                    objectOutputStream.close();
-                }
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
-
+        Util.updateScoreFile(file, scores);
     }
 
     public void populate2() {
@@ -162,8 +125,7 @@ public class ScoreboardActivity extends AppCompatActivity {
     }
 
     private void sort() {
-        ScoreComparator comparator = new ScoreComparator();
-        Collections.sort(scores, comparator);
+        scores = Util.sort(scores);
     }
 
     public TextView findTextViewById(int id) {
