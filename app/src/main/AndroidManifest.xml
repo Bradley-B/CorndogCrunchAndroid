@@ -21,13 +21,17 @@
         </activity>
         <activity
             android:name=".SingleplayerActivity"
+            android:configChanges="keyboardHidden|orientation|screenSize"
             android:parentActivityName=".LandingActivity" />
         <activity
             android:name=".ScoreboardActivity"
+            android:configChanges="keyboardHidden|orientation|screenSize"
             android:parentActivityName=".LandingActivity" />
         <activity android:name=".MultiplayerSettingsActivity"
+            android:configChanges="keyboardHidden|orientation|screenSize"
             android:windowSoftInputMode="stateHidden" />
-        <activity android:name=".MultiplayerActivity" />
+        <activity android:name=".MultiplayerActivity"
+            android:configChanges="keyboardHidden|orientation|screenSize"/>
         <activity android:name=".SettingsActivity"
             android:parentActivityName=".LandingActivity"
             ></activity>

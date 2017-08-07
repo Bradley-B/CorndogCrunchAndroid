@@ -2,13 +2,19 @@ package com.bradleyboxer.corndogcrunch;
 
 import android.content.Intent;
 import android.content.pm.ActivityInfo;
+import android.content.res.Configuration;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
+
+import com.bradleyboxer.corndogcrunch.highscores.Score;
+
+import org.w3c.dom.Text;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -16,6 +22,7 @@ import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.net.InetAddress;
 import java.net.Socket;
+import java.util.ArrayList;
 import java.util.regex.Pattern;
 
 public class MultiplayerSettingsActivity extends AppCompatActivity {
@@ -24,6 +31,7 @@ public class MultiplayerSettingsActivity extends AppCompatActivity {
     BufferedReader in = null;
     Socket socket = null;
     int textProgress = 0;
+    boolean connected = false;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -41,15 +49,17 @@ public class MultiplayerSettingsActivity extends AppCompatActivity {
         TextView multiplayerDisplay = ((TextView)findViewById(R.id.multiplayerDisplay));
         if(validateIp(ip) && validatePort(port) && name.length()>0) {
             try {
+                setButtonsConnected(true);
+                connected = true;
                 connectToServer(ip, name, Integer.valueOf(port));
-                ((Button)findViewById(R.id.connectButton)).setEnabled(false);
-                ((Button)findViewById(R.id.multiplayerReadyButton)).setEnabled(true);
-                ((Button)findViewById(R.id.sendChatButton)).setEnabled(true);
             } catch (IOException e) {
+                connected = false;
+                setButtonsConnected(false);
                 multiplayerDisplay.setText("Connection failed. Check IP address and try again.");
             }
         } else {
             multiplayerDisplay.setText("Preference values are invalid. Please correct errors and try again.");
+            connected = false;
         }
     }
 
@@ -59,8 +69,8 @@ public class MultiplayerSettingsActivity extends AppCompatActivity {
 
     public void onReadyButton(View v) {
         sendMessageToServer("/ready");
-        ((Button)findViewById(R.id.multiplayerReadyButton)).setEnabled(false);
-        ((Button)findViewById(R.id.multiplayerUnreadyButton)).setEnabled(true);
+        findViewById(R.id.multiplayerReadyButton).setEnabled(false);
+        findViewById(R.id.multiplayerUnreadyButton).setEnabled(true);
     }
 
     public void onUnreadyButton(View v) {
@@ -69,14 +79,14 @@ public class MultiplayerSettingsActivity extends AppCompatActivity {
 
     public void onUnreadyButton() {
         sendMessageToServer("/unready");
-        ((Button)findViewById(R.id.multiplayerReadyButton)).setEnabled(true);
-        ((Button)findViewById(R.id.multiplayerUnreadyButton)).setEnabled(false);
+        findViewById(R.id.multiplayerReadyButton).setEnabled(true);
+        findViewById(R.id.multiplayerUnreadyButton).setEnabled(false);
     }
 
     public void connectToServer(String ip, final String name, final int port) throws IOException {
         final InetAddress address = InetAddress.getByName(ip);
 
-        Thread connectThread = new Thread(new Runnable() { //connect to server
+        final Thread connectThread = new Thread(new Runnable() { //connect to server
             @Override
             public void run() {
                 try {
@@ -115,7 +125,14 @@ public class MultiplayerSettingsActivity extends AppCompatActivity {
                     });
                     listenerThread.start();
 
-                } catch (IOException e) {e.printStackTrace();}
+                } catch (Exception e) {
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            connected = false;
+                            setButtonsConnected(false);
+                        }});
+                }
             }
         });
         connectThread.start();
@@ -149,20 +166,29 @@ public class MultiplayerSettingsActivity extends AppCompatActivity {
             intent.putExtra("startTime", System.currentTimeMillis()+1000);
             startActivityForResult(intent, 1);
 
-        } else if(basecommand.contains("multiplayerScoreReport")) {
+        } else if(Util.extractNumber(basecommand)>10) { //check contains score report
             multiplayerDisplay.setText("\n"+subcommand.trim());
-            textProgress = 10;
+            textProgress = 3;
         } else if(basecommand.contains("clear")) {
             multiplayerDisplay.setText("");
         } else {
-            if(textProgress>=10) {
+            if(textProgress>=15) {
                 multiplayerDisplay.setText(command);
                 textProgress = 0;
             } else {
-                multiplayerDisplay.setText(multiplayerDisplay.getText().toString()+"\n"+command);
-                textProgress+=(int) (command.length()/28)+1;
+                multiplayerDisplay.setText(command+"\n"+multiplayerDisplay.getText().toString());
+                textProgress++;
             }
         }
+    }
+
+    @Override
+    public void onConfigurationChanged(Configuration newConfig) {
+        super.onConfigurationChanged(newConfig);
+        setContentView(R.layout.activity_multiplayer_settings);
+        setButtonsConnected(connected);
+        ((TextView)findViewById(R.id.multiplayerDisplay)).setText("");
+        textProgress = 0;
     }
 
     @Override
@@ -178,7 +204,18 @@ public class MultiplayerSettingsActivity extends AppCompatActivity {
         super.onBackPressed();
     }
 
+    public void setButtonsConnected(boolean isConnected) {
+        findViewById(R.id.multiplayerName).setEnabled(!isConnected);
+        findViewById(R.id.editPort).setEnabled(!isConnected);
+        findViewById(R.id.editIp).setEnabled(!isConnected);
+        findViewById(R.id.connectButton).setEnabled(!isConnected);
+
+        findViewById(R.id.multiplayerReadyButton).setEnabled(isConnected);
+        findViewById(R.id.sendChatButton).setEnabled(isConnected);
+    }
+
     public void closeConnection() {
+        connected = false;
         try {
             Log.i("MULTIPLAYER", "disconnecting from server");
             sendMessageToServer("/disconnect");

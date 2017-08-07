@@ -89,6 +89,29 @@ public class Util {
         return null;
     }
 
+    public static int extractNumber(final String str) {
+
+        if(str == null || str.isEmpty()) return 0;
+
+        StringBuilder sb = new StringBuilder();
+        boolean found = false;
+        for(char c : str.toCharArray()){
+            if(Character.isDigit(c)){
+                sb.append(c);
+                found = true;
+            } else if(found){
+                // If we already found a digit before and this char is not a digit, stop looping
+                break;
+            }
+        }
+
+        try {
+            return Integer.valueOf(sb.toString());
+        } catch (NumberFormatException e) {
+            return 0;
+        }
+    }
+
     public static String getCommand(String data) {
         if(data.startsWith("/")) {
             String basecommand = null;
