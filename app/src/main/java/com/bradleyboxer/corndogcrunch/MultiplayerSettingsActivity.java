@@ -155,7 +155,7 @@ public class MultiplayerSettingsActivity extends AppCompatActivity {
 
     public void processIncomingCommand(String command) {
         String basecommand = Util.getCommand(command);
-        String subcommand = Util.getSubcommand(command);
+        //String subcommand = Util.getSubcommand(command);
 
         TextView multiplayerDisplay = ((TextView)findViewById(R.id.multiplayerDisplay));
 
@@ -167,7 +167,7 @@ public class MultiplayerSettingsActivity extends AppCompatActivity {
             startActivityForResult(intent, 1);
 
         } else if(Util.extractNumber(basecommand)>10) { //check contains score report
-            multiplayerDisplay.setText("\n"+subcommand.trim());
+            multiplayerDisplay.setText(basecommand);
             textProgress = 3;
         } else if(basecommand.contains("clear")) {
             multiplayerDisplay.setText("");

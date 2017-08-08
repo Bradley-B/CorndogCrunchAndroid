@@ -130,6 +130,7 @@ public class Util {
     }
 
     public static String getSubcommand(String data) {
+
         if(data.startsWith("/")) {
             String subcommand = null;
 
@@ -140,6 +141,6 @@ public class Util {
                 }
             }
         }
-        return null;
+        return "";
     }
 }
