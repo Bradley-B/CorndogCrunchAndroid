@@ -71,11 +71,13 @@ public class Util {
             ArrayList<Score> scores = (ArrayList<Score>) objectInputStream.readObject();
             return scores;
         } catch (FileNotFoundException e) {
-            Log.e("HIGHSCORES", e.getMessage());
+            try {
+                file.createNewFile();
+            } catch (IOException ex) {ex.printStackTrace();}
         } catch (IOException e) {
-            Log.e("HIGHSCORES", e.getMessage());
+            e.printStackTrace();
         } catch (ClassNotFoundException e) {
-            Log.e("HIGHSCORES", e.getMessage());
+            e.printStackTrace();
         } finally {
             try {
                 if(objectInputStream!=null) {
@@ -86,7 +88,7 @@ public class Util {
             }
         }
 
-        return null;
+        return new ArrayList<Score>();
     }
 
     public static int extractNumber(final String str) {

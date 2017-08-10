@@ -50,16 +50,14 @@ public class MultiplayerSettingsActivity extends AppCompatActivity {
         if(validateIp(ip) && validatePort(port) && name.length()>0) {
             try {
                 setButtonsConnected(true);
-                connected = true;
-                connectToServer(ip, name, Integer.valueOf(port));
-            } catch (IOException e) {
-                connected = false;
+                connectToServer(InetAddress.getByName(ip), name, Integer.valueOf(port));
+            } catch (IOException e) { //NOTE: THIS CATCH ONLY HANDLES THE InetAddress EXCEPTION- NOT THE SOCKET ITSELF!
                 setButtonsConnected(false);
-                multiplayerDisplay.setText("Connection failed. Check IP address and try again.");
+                multiplayerDisplay.setText("Unable to resolve address. Check the IP and try again.");
             }
         } else {
             multiplayerDisplay.setText("Preference values are invalid. Please correct errors and try again.");
-            connected = false;
+            setButtonsConnected(false);
         }
     }
 
@@ -83,14 +81,14 @@ public class MultiplayerSettingsActivity extends AppCompatActivity {
         findViewById(R.id.multiplayerUnreadyButton).setEnabled(false);
     }
 
-    public void connectToServer(String ip, final String name, final int port) throws IOException {
-        final InetAddress address = InetAddress.getByName(ip);
+    public void connectToServer(final InetAddress ip, final String name, final int port) throws IOException {
 
-        final Thread connectThread = new Thread(new Runnable() { //connect to server
+        Thread connectThread = new Thread(new Runnable() { //connect to server
             @Override
             public void run() {
                 try {
-                    socket = new Socket(address, port);
+                    socket = new Socket(ip, port);
+
                     out = new PrintWriter(socket.getOutputStream());
                     sendMessageToServer("/nameReport "+name);
 
@@ -129,7 +127,6 @@ public class MultiplayerSettingsActivity extends AppCompatActivity {
                     runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
-                            connected = false;
                             setButtonsConnected(false);
                         }});
                 }
@@ -137,7 +134,7 @@ public class MultiplayerSettingsActivity extends AppCompatActivity {
         });
         connectThread.start();
 
-        Log.i("info", "Connected to: "+address.getHostAddress());
+        Log.i("info", "Trying connection to: "+ip.getHostAddress());
     }
 
     public void sendMessageToServer(final String message) {
@@ -205,6 +202,7 @@ public class MultiplayerSettingsActivity extends AppCompatActivity {
     }
 
     public void setButtonsConnected(boolean isConnected) {
+        connected = isConnected;
         findViewById(R.id.multiplayerName).setEnabled(!isConnected);
         findViewById(R.id.editPort).setEnabled(!isConnected);
         findViewById(R.id.editIp).setEnabled(!isConnected);
